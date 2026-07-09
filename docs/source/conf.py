@@ -74,7 +74,13 @@ if not FBCODE:
         "sphinxcontrib.katex",
     ]
 
-html_context = {"fbcode": FBCODE}
+html_context = {
+    "fbcode": FBCODE,
+    # Sphinx 7.2 removed the `style` template variable, but
+    # pytorch_sphinx_theme's layout.html still references it. Inject the
+    # value Sphinx < 7.2 derived from the theme's `stylesheet` setting.
+    "style": "css/theme.css",
+}
 
 # coverage options
 
@@ -143,6 +149,12 @@ exclude_patterns = []
 if not FBCODE:
     # fb/ contains Meta-internal docs only available in the fbcode build.
     exclude_patterns += ["fb/**"]
+    # The ``.. fbcode::`` directive (docs/source/ext/fbcode.py) hides the
+    # Meta-internal ``torchx.specs.fb`` / ``torchx.workspace.fb`` automodule
+    # blocks from the OSS build, but autosummary's pre-parse source scan still
+    # tries to import those modules, emitting fatal warnings under ``-W``. Mock
+    # them so the import succeeds without the fb sources being present.
+    autodoc_mock_imports += ["torchx.specs.fb", "torchx.workspace.fb"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
